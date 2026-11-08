@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Pligter</title>
+<title>Husholdning</title>
 <meta name="theme-color" content="#2e7d32">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Pligter">
+<meta name="apple-mobile-web-app-title" content="Husholdning">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -140,7 +140,7 @@
 
 <!-- Login -->
 <section id="vLogin" class="login hidden">
-  <h1>Pligter</h1>
+  <h1>Husholdning</h1>
   <p id="loginTekst">Log ind med din kode.</p>
   <form id="fLogin">
     <input id="lEmail" type="email" autocomplete="username" value="achris@live.dk" readonly>
@@ -156,7 +156,7 @@
 <div id="vApp" class="hidden">
   <div class="wrap">
     <header class="top">
-      <h1 id="titel">Pligter</h1>
+      <h1 id="titel">Husholdning</h1>
       <span class="dato" id="idag"></span>
     </header>
 
@@ -622,7 +622,7 @@ function visFane(navn) {
   $("fRediger").classList.toggle("hidden", !rediger);
   $("tOpgaver").classList.toggle("aktiv", !rediger);
   $("tRediger").classList.toggle("aktiv", rediger);
-  $("titel").textContent = rediger ? "Rediger" : "Pligter";
+  $("titel").textContent = rediger ? "Rediger" : "Husholdning";
   window.scrollTo(0, 0);
   if (rediger) { tegnRediger(); tegnMailStatus(); }
 }
