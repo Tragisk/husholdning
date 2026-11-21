@@ -11,14 +11,14 @@
 <style>
   :root {
     --bg: #f4f5f2; --card: #ffffff; --text: #1c2119; --muted: #646b60; --line: #e2e5de;
-    --over-bg: #fbe4e2; --over-line: #8b1a1a;
+    --over-bg: #fbe4e2; --over-line: #8b1a1a; --accent: #7b1e34;
     --sat-bg: 70%; --light-bg: 94%; --sat-line: 62%; --light-line: 40%;
     --shadow: 0 1px 2px rgba(0,0,0,.06);
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #121410; --card: #1b1e19; --text: #e7eae3; --muted: #9ba294; --line: #2c3029;
-      --over-bg: #3a1714; --over-line: #e0574d;
+      --over-bg: #3a1714; --over-line: #e0574d; --accent: #d98ca0;
       --sat-bg: 35%; --light-bg: 16%; --sat-line: 55%; --light-line: 50%;
       --shadow: none;
     }
@@ -26,7 +26,7 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--text); }
   body { font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  .wrap { max-width: 560px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom)); }
+  .wrap { max-width: 560px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px calc(84px + env(safe-area-inset-bottom)); }
   header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
   h1 { font-size: 28px; margin: 0; letter-spacing: -.5px; }
   .dato { color: var(--muted); font-size: 14px; }
@@ -48,22 +48,59 @@
   .daglig div:last-child { border-bottom: 0; }
   .fod { color: var(--muted); font-size: 12px; text-align: center; margin-top: 24px; }
   .fejl { color: var(--over-line); text-align: center; padding: 24px 0; }
+  .tom { color: var(--muted); text-align: center; padding: 24px 0; }
+
+  /* Projekter: kompakte rækker */
+  .liste.p { gap: 4px; }
+  .pkort { display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 6px 10px; background: var(--card);
+    border-left: 4px solid var(--accent); border-radius: 8px; box-shadow: var(--shadow); }
+  .pkort.klar { border-left-color: var(--line); }
+  .pnavn { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+  .pkort.klar .pnavn { text-decoration: line-through; color: var(--muted); }
+  .pmeta { flex: none; font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  /* Fane-bar */
+  nav.faner { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--line);
+    display: flex; justify-content: center; padding-bottom: env(safe-area-inset-bottom); z-index: 10; }
+  nav.faner button { flex: 1; max-width: 280px; background: none; border: 0; padding: 10px 0 12px; color: var(--muted);
+    display: flex; flex-direction: column; align-items: center; gap: 2px; font: inherit; font-size: 12px; cursor: pointer; }
+  nav.faner button svg { width: 24px; height: 24px; }
+  nav.faner button.aktiv { color: var(--accent); font-weight: 600; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Husholdning</h1>
+    <h1 id="titel">Husholdning</h1>
     <span class="dato" id="idag"></span>
   </header>
+  <section id="vOpgaver">
   <p class="opsummering" id="opsummering">Henter …</p>
   <div class="liste" id="liste"></div>
   <div id="dagligBoks" style="display:none">
     <h2>Dagligt</h2>
     <div class="daglig" id="dagligListe"></div>
   </div>
+  </section>
+
+  <section id="vProjekter" hidden>
+    <p class="opsummering" id="pOpsum">Henter …</p>
+    <div id="pIndhold"></div>
+  </section>
+
   <p class="fod" id="fod">Kun visning · opdateres automatisk</p>
 </div>
+
+<nav class="faner">
+  <button id="tOpgaver" class="aktiv" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>
+    Opgaver
+  </button>
+  <button id="tProjekter" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    Projekter
+  </button>
+</nav>
 
 <script>
 const SB_URL = "https://jmkicrzqmzbetzzjoqtd.supabase.co";
@@ -114,6 +151,7 @@ function meta(o) {
 
 async function hent() {
   $("idag").textContent = fmtDato(idagISO());
+  hentProjekter();
   try {
     const res = await fetch(`${SB_URL}/rest/v1/rpc/pligt_overblik`, {
       method: "POST",
@@ -153,6 +191,60 @@ function tegn(rows) {
   $("dagligBoks").style.display = daglig.length ? "" : "none";
   $("dagligListe").innerHTML = daglig.map((o) => `<div>${esc(o.navn)}</div>`).join("");
 }
+
+/* ---------- projekter (kun visning) ---------- */
+async function hentProjekter() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/pligt_projekter_overblik`, {
+      method: "POST",
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, "Content-Type": "application/json" },
+      body: "{}",
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    tegnProjekter(await res.json());
+  } catch (e) {
+    $("pIndhold").innerHTML = '<div class="fejl">Kunne ikke hente projekterne lige nu.</div>';
+    $("pOpsum").textContent = "";
+  }
+}
+
+function tegnProjekter(rows) {
+  const aabne = rows.filter((p) => !p.faerdig)
+    .sort((a, b) => a.sortering - b.sortering || a.navn.localeCompare(b.navn, "da"));
+  const faerdige = rows.filter((p) => p.faerdig)
+    .sort((a, b) => b.faerdig.localeCompare(a.faerdig) || a.navn.localeCompare(b.navn, "da"));
+  $("pOpsum").innerHTML = rows.length
+    ? `<b>${aabne.length}</b> åbne` + (faerdige.length ? ` · <b>${faerdige.length}</b> færdige` : "")
+    : "Ingen projekter endnu";
+
+  const raekke = (p) => `<div class="pkort${p.faerdig ? " klar" : ""}"><span class="pnavn">${esc(p.navn)}</span>`
+    + `<span class="pmeta">${esc(p.faerdig ? "Færdig " + fmtDato(p.faerdig) : fmtDato(p.oprettet))}</span></div>`;
+
+  // Kategorierne vises i den rækkefølge, de først optræder (listen er sorteret efter "sortering")
+  const grupper = new Map();
+  aabne.forEach((p) => {
+    if (!grupper.has(p.kategori)) grupper.set(p.kategori, []);
+    grupper.get(p.kategori).push(p);
+  });
+  let html = aabne.length
+    ? [...grupper].map(([k, liste]) => `<h2>${esc(k)}</h2><div class="liste p">${liste.map(raekke).join("")}</div>`).join("")
+    : '<div class="tom">Ingen åbne projekter.</div>';
+  if (faerdige.length) html += `<h2>Færdige</h2><div class="liste p">${faerdige.map(raekke).join("")}</div>`;
+  $("pIndhold").innerHTML = html;
+}
+
+/* ---------- faner ---------- */
+function visFane(navn) {
+  const projekt = navn === "projekter";
+  $("vOpgaver").hidden = projekt;
+  $("vProjekter").hidden = !projekt;
+  $("tOpgaver").classList.toggle("aktiv", !projekt);
+  $("tProjekter").classList.toggle("aktiv", projekt);
+  $("titel").textContent = projekt ? "Projekter" : "Husholdning";
+  window.scrollTo(0, 0);
+}
+$("tOpgaver").onclick = () => visFane("opgaver");
+$("tProjekter").onclick = () => visFane("projekter");
 
 hent();
 setInterval(hent, 5 * 60 * 1000);
