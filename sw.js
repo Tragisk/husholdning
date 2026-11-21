@@ -1,6 +1,6 @@
 // Husholdning service worker: gør appen installérbar og viser sidste version offline.
 // Data hentes altid live fra Supabase (caches ikke).
-const CACHE = "husholdning-v3";
+const CACHE = "husholdning-v4";
 const SKAL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {

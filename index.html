@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Husholdning</title>
-<meta name="theme-color" content="#2e7d32">
+<meta name="theme-color" content="#7b1e34">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -15,14 +15,14 @@
 <style>
   :root {
     --bg: #f4f5f2; --card: #ffffff; --text: #1c2119; --muted: #646b60; --line: #e2e5de;
-    --accent: #2e7d32; --accent-text: #ffffff; --danger: #b3261e; --over-bg: #fbe4e2; --over-line: #8b1a1a;
+    --accent: #7b1e34; --accent-text: #ffffff; --danger: #b3261e; --over-bg: #fbe4e2; --over-line: #8b1a1a;
     --sat-bg: 70%; --light-bg: 94%; --sat-line: 62%; --light-line: 40%;
     --shadow: 0 1px 2px rgba(0,0,0,.06);
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #121410; --card: #1b1e19; --text: #e7eae3; --muted: #9ba294; --line: #2c3029;
-      --accent: #5cb860; --accent-text: #0c1a0c; --danger: #ff8a80; --over-bg: #3a1714; --over-line: #e0574d;
+      --accent: #d98ca0; --accent-text: #2a0a12; --danger: #ff8a80; --over-bg: #3a1714; --over-line: #e0574d;
       --sat-bg: 35%; --light-bg: 16%; --sat-line: 55%; --light-line: 50%;
       --shadow: none;
     }
@@ -123,7 +123,7 @@
   .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom));
     background: #222; color: #fff; padding: 10px 14px; border-radius: 12px; display: flex; gap: 14px; align-items: center;
     font-size: 15px; z-index: 20; max-width: calc(100% - 32px); box-shadow: 0 4px 16px rgba(0,0,0,.25); }
-  .toast button { background: none; border: 0; color: #9be39e; font-weight: 700; cursor: pointer; padding: 4px; }
+  .toast button { background: none; border: 0; color: #f0b4c2; font-weight: 700; cursor: pointer; padding: 4px; }
   .tom { color: var(--muted); text-align: center; padding: 24px 0; }
   .opsum-rk { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 0 0 14px; }
   .opsum-rk .opsummering { margin: 0; }
@@ -134,6 +134,13 @@
   .rk-knap { display: flex; gap: 8px; }
   .rk-knap .knap:first-child { flex: 1; }
   .maerke { font-size: 12px; color: var(--accent); font-weight: 600; }
+
+  /* Projekter */
+  .pkort { background: var(--card); border-left: 6px solid var(--accent); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+  .pkort.klar { border-left-color: var(--line); }
+  .pkort.klar .kort-navn { text-decoration: line-through; color: var(--muted); }
+  .pkort .detaljer .rk input[type=text] { flex: 1 1 140px; min-width: 0; }
+  .pkort .detaljer .rk input[type=date] { width: auto; }
 </style>
 </head>
 <body>
@@ -184,6 +191,29 @@
       <div class="daglig" id="dagligListe"></div>
     </section>
 
+    <section id="fProjekter" class="hidden">
+      <div class="opsum-rk">
+        <p class="opsummering" id="pOpsum"></p>
+        <button class="knap lille sekundaer" type="button" id="visProj">＋ Projekt</button>
+      </div>
+      <form class="boks-kort hurtig hidden" id="fProj">
+        <div>
+          <span class="felt-label">Projekt</span>
+          <input type="text" id="pNavn" placeholder="Fx Montér knagerække" required>
+        </div>
+        <div>
+          <span class="felt-label">Kategori</span>
+          <input type="text" id="pKat" list="katListe" placeholder="Fx Entré (tom = Andet)">
+        </div>
+        <div class="rk-knap">
+          <button class="knap" type="submit">Tilføj projekt</button>
+          <button class="knap sekundaer" type="button" id="annullerProj">Annuller</button>
+        </div>
+      </form>
+      <datalist id="katListe"></datalist>
+      <div id="pIndhold"></div>
+    </section>
+
     <section id="fRediger" class="hidden">
       <h2 style="margin-top:8px">Ny opgave</h2>
       <form class="boks-kort ny" id="fNy">
@@ -222,6 +252,10 @@
     <button id="tOpgaver" class="aktiv" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>
       Opgaver
+    </button>
+    <button id="tProjekter" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      Projekter
     </button>
     <button id="tRediger" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
@@ -370,6 +404,7 @@ $("fLogin").onsubmit = async (e) => {
 async function visApp() {
   $("vLogin").classList.add("hidden");
   $("vApp").classList.remove("hidden");
+  visFane("opgaver");
   $("idag").textContent = fmtDato(idagISO());
   await hentOpgaver();
 }
@@ -615,18 +650,175 @@ $("testMail").onclick = async () => {
   toast(data);
 };
 
+/* ---------- projekter ---------- */
+let projekter = [];
+let aabenP = null;   // id på udvidet projekt
+
+async function hentProjekter() {
+  const { data, error } = await sb.from("pligt_projekter").select("*").order("sortering").order("oprettet_ts");
+  if (error) return fejl(error);
+  projekter = data || [];
+  tegnProjekter();
+}
+
+function projektPanel(p) {
+  const idag = idagISO();
+  return `<div class="detaljer">
+    <div class="rk"><label for="pn-${p.id}">Navn</label><input type="text" id="pn-${p.id}" data-pfelt="navn" value="${esc(p.navn)}"></div>
+    <div class="rk"><label for="pk-${p.id}">Kategori</label><input type="text" id="pk-${p.id}" list="katListe" data-pfelt="kategori" value="${esc(p.kategori)}"></div>
+    ${p.faerdig
+      ? `<div class="rk"><label for="pf-${p.id}">Færdig den</label><input type="date" id="pf-${p.id}" data-pfelt="faerdig" max="${idag}" value="${p.faerdig}"></div>`
+      : `<div class="rk"><label for="pf-${p.id}">Færdig en anden dag:</label><input type="date" id="pf-${p.id}" max="${idag}" value="${idag}"><button class="knap lille" type="button" data-handling="faerdig-dato">Gem</button></div>`}
+    <div class="rk"><button class="knap lille fare" type="button" data-handling="slet">Slet</button></div>
+  </div>`;
+}
+
+function projektKort(p) {
+  const klar = !!p.faerdig;
+  const meta = klar ? `Færdig ${fmtDato(p.faerdig)} · oprettet ${fmtDato(p.oprettet)}` : `Oprettet ${fmtDato(p.oprettet)}`;
+  return `<div class="pkort${klar ? " klar" : ""}" data-id="${p.id}">
+    <div class="kort-top">
+      <div class="kort-tekst" data-handling="udvid">
+        <div class="kort-navn">${esc(p.navn)}</div>
+        <div class="kort-meta">${esc(meta)}</div>
+      </div>
+      <button class="loest${klar ? " gjort" : ""}" type="button" data-handling="${klar ? "genaabn" : "faerdig"}"
+        aria-label="${klar ? "Åbn" : "Markér"} ${esc(p.navn)} ${klar ? "igen" : "som færdig"}">
+        <span class="boks">${CHECK}</span>Færdig
+      </button>
+    </div>
+    ${aabenP === p.id ? projektPanel(p) : ""}
+  </div>`;
+}
+
+function tegnProjekter() {
+  const aabne = projekter.filter((p) => !p.faerdig);
+  const faerdige = projekter.filter((p) => p.faerdig)
+    .sort((a, b) => b.faerdig.localeCompare(a.faerdig) || a.navn.localeCompare(b.navn, "da"));
+
+  $("pOpsum").innerHTML = projekter.length
+    ? `<b>${aabne.length}</b> åbne` + (faerdige.length ? ` · <b>${faerdige.length}</b> færdige` : "")
+    : "Ingen projekter endnu";
+
+  const kategorier = [...new Set(projekter.map((p) => p.kategori))].sort((a, b) => a.localeCompare(b, "da"));
+  $("katListe").innerHTML = kategorier.map((k) => `<option value="${esc(k)}"></option>`).join("");
+
+  // Kategorierne vises i den rækkefølge, de først optræder (listen er sorteret efter "sortering")
+  const grupper = new Map();
+  aabne.forEach((p) => {
+    if (!grupper.has(p.kategori)) grupper.set(p.kategori, []);
+    grupper.get(p.kategori).push(p);
+  });
+  let html = aabne.length
+    ? [...grupper].map(([k, liste]) => `<h2>${esc(k)}</h2><div class="liste">${liste.map(projektKort).join("")}</div>`).join("")
+    : '<div class="tom">Ingen åbne projekter. Tilføj et med ＋ Projekt.</div>';
+  if (faerdige.length) html += `<h2>Færdige</h2><div class="liste">${faerdige.map(projektKort).join("")}</div>`;
+  $("pIndhold").innerHTML = html;
+}
+
+async function saetFaerdig(p, dato) {
+  const gammel = p.faerdig;
+  aabenP = null;   // panelet lukkes, når handlingen er gjort
+  const { error } = await sb.from("pligt_projekter").update({ faerdig: dato }).eq("id", p.id);
+  if (error) return fejl(error);
+  if (navigator.vibrate) navigator.vibrate(15);
+  await hentProjekter();
+  if (dato) {
+    const naar = dato === idagISO() ? "i dag" : fmtDato(dato);
+    toast(`${p.navn} færdig ${naar}`, async () => {
+      const { error: e2 } = await sb.from("pligt_projekter").update({ faerdig: gammel }).eq("id", p.id);
+      if (e2) return fejl(e2);
+      await hentProjekter();
+    });
+  } else {
+    toast(`${p.navn} åbnet igen`);
+  }
+}
+
+$("pIndhold").addEventListener("click", async (e) => {
+  const el = e.target.closest("[data-handling]");
+  if (!el) return;
+  const id = el.closest(".pkort").dataset.id;
+  const p = projekter.find((x) => x.id === id);
+  if (!p) return;
+  const h = el.dataset.handling;
+  if (h === "udvid") {
+    aabenP = aabenP === id ? null : id;
+    tegnProjekter();
+  } else if (h === "faerdig") {
+    await saetFaerdig(p, idagISO());
+  } else if (h === "faerdig-dato") {
+    const v = $("pf-" + id).value;
+    if (v && v <= idagISO()) await saetFaerdig(p, v);
+  } else if (h === "genaabn") {
+    await saetFaerdig(p, null);
+  } else if (h === "slet") {
+    if (el.dataset.klar !== "1") {
+      el.dataset.klar = "1"; el.textContent = "Tryk igen for at slette";
+      setTimeout(() => { el.dataset.klar = ""; el.textContent = "Slet"; }, 3000);
+      return;
+    }
+    const { error } = await sb.from("pligt_projekter").delete().eq("id", id);
+    if (error) return fejl(error);
+    aabenP = null;
+    await hentProjekter();
+  }
+});
+
+$("pIndhold").addEventListener("change", async (e) => {
+  const felt = e.target.dataset.pfelt;
+  if (!felt) return;
+  const id = e.target.closest(".pkort").dataset.id;
+  let v = e.target.value;
+  if (felt === "navn" || felt === "kategori") v = v.trim();
+  // Tom tekst eller en dato i fremtiden gemmes ikke: listen tegnes bare igen med de gemte værdier
+  if (!v || (felt === "faerdig" && v > idagISO())) { tegnProjekter(); return; }
+  const { error } = await sb.from("pligt_projekter").update({ [felt]: v }).eq("id", id);
+  if (error) return fejl(error);
+  await hentProjekter();
+});
+
+function visProj(on) {
+  $("fProj").classList.toggle("hidden", !on);
+  $("visProj").classList.toggle("hidden", on);
+  if (on) $("pNavn").focus();
+}
+$("visProj").onclick = () => visProj(true);
+$("annullerProj").onclick = () => visProj(false);
+$("fProj").onsubmit = async (e) => {
+  e.preventDefault();
+  const navn = $("pNavn").value.trim();
+  const kategori = $("pKat").value.trim() || "Andet";
+  if (!navn) return;
+  const sortering = projekter.reduce((m, p) => Math.max(m, p.sortering), 0) + 1;
+  // "oprettet" (dato-stemplet) sættes af databasen til dags dato i dansk tid
+  const { error } = await sb.from("pligt_projekter").insert({ navn, kategori, sortering });
+  if (error) return fejl(error);
+  $("pNavn").value = ""; $("pKat").value = "";
+  visProj(false);
+  toast("Projekt tilføjet");
+  await hentProjekter();
+};
+
 /* ---------- faner ---------- */
+let fane = "opgaver";
 function visFane(navn) {
+  fane = navn;
   const rediger = navn === "rediger";
-  $("fOpgaver").classList.toggle("hidden", rediger);
+  const projekt = navn === "projekter";
+  $("fOpgaver").classList.toggle("hidden", rediger || projekt);
+  $("fProjekter").classList.toggle("hidden", !projekt);
   $("fRediger").classList.toggle("hidden", !rediger);
-  $("tOpgaver").classList.toggle("aktiv", !rediger);
+  $("tOpgaver").classList.toggle("aktiv", navn === "opgaver");
+  $("tProjekter").classList.toggle("aktiv", projekt);
   $("tRediger").classList.toggle("aktiv", rediger);
-  $("titel").textContent = rediger ? "Rediger" : "Husholdning";
+  $("titel").textContent = rediger ? "Rediger" : projekt ? "Projekter" : "Husholdning";
   window.scrollTo(0, 0);
   if (rediger) { tegnRediger(); tegnMailStatus(); }
+  if (projekt) hentProjekter();
 }
 $("tOpgaver").onclick = () => visFane("opgaver");
+$("tProjekter").onclick = () => visFane("projekter");
 $("tRediger").onclick = () => visFane("rediger");
 $("logUd").onclick = async () => { await sb.auth.signOut(); visLogin(); };
 
@@ -634,6 +826,7 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && !$("vApp").classList.contains("hidden")) {
     $("idag").textContent = fmtDato(idagISO());
     hentOpgaver();
+    if (fane === "projekter") hentProjekter();
   }
 });
 
